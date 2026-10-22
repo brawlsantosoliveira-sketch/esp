@@ -1,0 +1,55 @@
+local VisualDebugger = {}
+local RunService = game:GetService("RunService")
+
+VisualDebugger.Enabled = false
+VisualDebugger.Settings = {
+    BoxESP = true,          -- Caixas ao redor dos alvos
+    Chams = true,           -- Destaque visual dos modelos
+    NameTags = true,        -- Nome/ID dos alvos
+    DistanceESP = true,     -- Distância até o alvo
+    SkeletonESP = true,     -- Estrutura de articulações
+    LineESP = true,         -- Linha entre observador e alvo
+    Color = Color3.fromRGB(0, 200, 255),
+    Transparency = 0.4
+}
+
+function VisualDebugger:Render(target)
+    if not self.Enabled then return end
+    
+    -- Exemplo: caixa ao redor do alvo
+    if self.Settings.BoxESP then
+        local box = Instance.new("BoxHandleAdornment")
+        box.Size = target:GetExtentsSize()
+        box.Adornee = target
+        box.Color3 = self.Settings.Color
+        box.Transparency = self.Settings.Transparency
+        box.ZIndex = 5
+        box.Parent = target
+    end
+    
+    -- Exemplo: NameTag educativo
+    if self.Settings.NameTags then
+        local billboard = Instance.new("BillboardGui")
+        billboard.Size = UDim2.new(0, 100, 0, 50)
+        billboard.Adornee = target:FindFirstChild("Head")
+        billboard.AlwaysOnTop = true
+        billboard.Parent = target
+        
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.Text = "Alvo: " .. target.Name
+        text.TextColor3 = self.Settings.Color
+        text.BackgroundTransparency = 1
+        text.Parent = billboard
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if VisualDebugger.Enabled then
+        -- Iterar sobre NPCs autorizados
+        for _, npc in pairs(workspace:GetChildren()) do
+            if npc:IsA("Model") and npc:FindFirstChild("Humanoid") then
+                VisualDebugger:Render(npc)
+            end
+        end
+    end
