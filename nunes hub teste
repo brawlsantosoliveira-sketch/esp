@@ -1,0 +1,164 @@
+-- NUNES HUB - MODERNO COM CONFIG (Cores + Keybinds)
+local P=game:GetService("Players"); local RS=game:GetService("RunService"); local UIS=game:GetService("UserInputService"); local LP=P.LocalPlayer
+local C={ToggleKey=Enum.KeyCode.RightShift,AimKey=Enum.KeyCode.LeftAlt,Aim=false,Auto=true,Silent=false,ESP=false,FOVShow=true,Wall=true,Hitbox=false,HitboxSize=10,Dist=500,FOV=150,Smooth=0.25,Hum=3,Rage=0,Speed=false,SpeedVal=16,Fly=false,FlySpeed=50,InfJump=false,NoRecoil=false,FastReload=false,ESPColor=Color3.fromRGB(255,60,60),NameColor=Color3.fromRGB(255,255,255),
+    HubColor=Color3.fromRGB(28,28,35), Keybinds={Rage=Enum.KeyCode.Z, ESP=Enum.KeyCode.X, Aimbot=Enum.KeyCode.C, Silent=Enum.KeyCode.V, Hitbox=Enum.KeyCode.B}}
+-- GUI (Painel 620x430 - Mais Moderno)
+local SG=Instance.new("ScreenGui"); SG.Name="NunesHub"; SG.ResetOnSpawn=false; SG.IgnoreGuiInset=true
+pcall(function() SG.Parent=game:GetService("CoreGui") end); if not SG.Parent then SG.Parent=LP:WaitForChild("PlayerGui") end
+local Main=Instance.new("Frame"); Main.Size=UDim2.new(0,620,0,430); Main.Position=UDim2.new(0.5,-310,0.5,-215); Main.BackgroundColor3=Color3.fromRGB(20,20,25); Main.BorderSizePixel=0; Main.Active=true; Main.Draggable=true; Main.Parent=SG
+Instance.new("UICorner",Main).CornerRadius=UDim.new(0,12)
+-- Sombra
+local Shadow=Instance.new("ImageLabel"); Shadow.Size=UDim2.new(1,30,1,30); Shadow.Position=UDim2.new(0,-15,0,-15); Shadow.BackgroundTransparency=1; Shadow.Image="rbxassetid://1316045217"; Shadow.ImageColor3=Color3.fromRGB(0,0,0); Shadow.ImageTransparency=0.5; Shadow.ScaleType=Enum.ScaleType.Slice; Shadow.SliceCenter=Rect.new(10,10,118,118); Shadow.Parent=Main; Main.ClipsDescendants=false
+-- Sidebar Moderna
+local Side=Instance.new("Frame"); Side.Size=UDim2.new(0,50,1,0); Side.BackgroundColor3=C.HubColor; Side.Parent=Main; Instance.new("UICorner",Side).CornerRadius=UDim.new(0,12)
+local icons={"🎯","👁️","🧍","🔫","⚡"}; local sideBtns={}
+for i,ic in ipairs(icons) do local b=Instance.new("TextButton"); b.Size=UDim2.new(0,32,0,32); b.Position=UDim2.new(0,9,0,15+(i-1)*45); b.BackgroundColor3=(i==1) and Color3.fromRGB(70,70,90) or C.HubColor; b.Text=ic; b.TextColor3=(i==1) and Color3.fromRGB(255,255,255) or Color3.fromRGB(150,150,160); b.Font=Enum.Font.GothamBold; b.TextSize=16; b.Parent=Side; Instance.new("UICorner",b).CornerRadius=UDim.new(0,8); sideBtns[ic]=b end
+-- Right
+local Right=Instance.new("Frame"); Right.Size=UDim2.new(1,-50,1,0); Right.Position=UDim2.new(0,50,0,0); Right.BackgroundTransparency=1; Right.Parent=Main
+-- Tabs Modernas
+local Top=Instance.new("Frame"); Top.Size=UDim2.new(1,-20,0,40); Top.Position=UDim2.new(0,10,0,10); Top.BackgroundColor3=C.HubColor; Top.Parent=Right; Instance.new("UICorner",Top).CornerRadius=UDim.new(0,10)
+local tabs={"Mira","ESP","Movimentos","Armas","Config"}; local tabBtns={}
+for i,n in ipairs(tabs) do local b=Instance.new("TextButton"); b.Size=UDim2.new(0,70,1,0); b.Position=UDim2.new(0,10+(i-1)*75,0,0); b.BackgroundTransparency=1; b.Text=n; b.TextColor3=(i==1) and Color3.fromRGB(255,255,255) or Color3.fromRGB(150,150,160); b.Font=Enum.Font.GothamMedium; b.TextSize=11; b.Parent=Top; tabBtns[n]=b end
+-- Content
+local Cont=Instance.new("Frame"); Cont.Size=UDim2.new(1,-20,1,-60); Cont.Position=UDim2.new(0,10,0,60); Cont.BackgroundTransparency=1; Cont.Parent=Right
+local TC={}
+for _,n in ipairs(tabs) do local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,1,0); f.BackgroundTransparency=1; f.Visible=(n=="Mira"); f.Parent=Cont; TC[n]=f end
+-- Card Moderno
+local function createCard(par,text,y,x,def,cb)
+    local c=Instance.new("Frame"); c.Size=UDim2.new(0,265,0,38); c.Position=UDim2.new(0,x,0,y); c.BackgroundColor3=C.HubColor; c.Parent=par; Instance.new("UICorner",c).CornerRadius=UDim.new(0,8)
+    local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,-50,1,0); l.Position=UDim2.new(0,15,0,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=Color3.fromRGB(230,230,240); l.Font=Enum.Font.GothamMedium; l.TextSize=12; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=c
+    local t=Instance.new("Frame"); t.Size=UDim2.new(0,30,0,14); t.Position=UDim2.new(1,-45,0.5,-7); t.BackgroundTransparency=1; t.Parent=c
+    local dot=Instance.new("Frame"); dot.Size=UDim2.new(0,8,0,8); dot.Position=def and UDim2.new(0,20,0.5,-4) or UDim2.new(0,8,0.5,-4); dot.BackgroundColor3=def and Color3.fromRGB(100,180,255) or Color3.fromRGB(80,80,90); dot.Parent=t; Instance.new("UICorner",dot).CornerRadius=UDim.new(1,0)
+    local st=def or false; if cb then cb(st) end
+    t.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then st=not st; dot.Position=st and UDim2.new(0,20,0.5,-4) or UDim2.new(0,8,0.5,-4); dot.BackgroundColor3=st and Color3.fromRGB(100,180,255) or Color3.fromRGB(80,80,90); if cb then cb(st) end end end)
+end
+local function createSlider(par,text,y,x,min,max,def,cb)
+    local f=Instance.new("Frame"); f.Size=UDim2.new(0,265,0,38); f.Position=UDim2.new(0,x,0,y); f.BackgroundColor3=C.HubColor; f.Parent=par; Instance.new("UICorner",f).CornerRadius=UDim.new(0,8)
+    local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,-15,0,16); l.Position=UDim2.new(0,15,0,3); l.BackgroundTransparency=1; l.Text=text..": "..def; l.TextColor3=Color3.fromRGB(200,200,210); l.Font=Enum.Font.Gotham; l.TextSize=11; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=f
+    local b=Instance.new("Frame"); b.Size=UDim2.new(1,-30,0,4); b.Position=UDim2.new(0,15,0,26); b.BackgroundColor3=Color3.fromRGB(60,60,75); b.Parent=f; Instance.new("UICorner",b).CornerRadius=UDim.new(1,0)
+    local fi=Instance.new("Frame"); fi.Size=UDim2.new((def-min)/(max-min),0,1,0); fi.BackgroundColor3=Color3.fromRGB(100,180,255); fi.Parent=b
+    local kn=Instance.new("Frame"); kn.Size=UDim2.new(0,10,0,10); kn.Position=UDim2.new((def-min)/(max-min),-5,0.5,-5); kn.BackgroundColor3=Color3.new(1,1,1); kn.Parent=b; Instance.new("UICorner",kn).CornerRadius=UDim.new(1,0)
+    local dr=false; local function sv(px) local r=math.clamp((px-b.AbsolutePosition.X)/b.AbsoluteSize.X,0,1); local v=math.floor(min+(max-min)*r); fi.Size=UDim2.new(r,0,1,0); kn.Position=UDim2.new(r,-5,0.5,-5); l.Text=text..": "..v; if cb then cb(v) end end
+    b.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dr=true; sv(i.Position.X) end end)
+    UIS.InputChanged:Connect(function(i) if dr and i.UserInputType==Enum.UserInputType.MouseMovement then sv(i.Position.X) end end)
+    UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then dr=false end end)
+    if cb then cb(def) end
+end
+local function createKeybind(par,text,y,x,defaultKey,cb)
+    local f=Instance.new("Frame"); f.Size=UDim2.new(0,265,0,38); f.Position=UDim2.new(0,x,0,y); f.BackgroundColor3=C.HubColor; f.Parent=par; Instance.new("UICorner",f).CornerRadius=UDim.new(0,8)
+    local l=Instance.new("TextLabel"); l.Size=UDim2.new(1,-80,1,0); l.Position=UDim2.new(0,15,0,0); l.BackgroundTransparency=1; l.Text=text; l.TextColor3=Color3.fromRGB(230,230,240); l.Font=Enum.Font.GothamMedium; l.TextSize=12; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=f
+    local b=Instance.new("TextButton"); b.Size=UDim2.new(0,50,0,24); b.Position=UDim2.new(1,-65,0.5,-12); b.BackgroundColor3=Color3.fromRGB(50,50,60); b.Text=defaultKey.Name; b.TextColor3=Color3.fromRGB(200,200,210); b.Font=Enum.Font.GothamBold; b.TextSize=10; b.Parent=f; Instance.new("UICorner",b).CornerRadius=UDim.new(0,4)
+    b.MouseButton1Click:Connect(function() b.Text="..."; local conn; conn=UIS.InputBegan:Connect(function(i,g) if g then return end; if i.UserInputType==Enum.UserInputType.Keyboard then b.Text=i.KeyCode.Name; if cb then cb(i.KeyCode) end; conn:Disconnect() end end) end)
+    if cb then cb(defaultKey) end
+end
+-- Lógica
+local function isVis(tp) local cam=workspace.CurrentCamera; if not cam then return false end; local o=cam.CFrame.Position; local pr=RaycastParams.new(); pr.FilterType=Enum.RaycastFilterType.Exclude; pr.FilterDescendantsInstances={LP.Character,tp.Parent}; pr.IgnoreWater=true; local rs=workspace:Raycast(o,(tp.Position-o),pr); if not rs then return true end; if rs.Instance and rs.Instance:IsDescendantOf(tp.Parent) then return true end; return false end
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 1; FOVCircle.NumSides = 60; FOVCircle.Radius = C.FOV; FOVCircle.Color = Color3.fromRGB(255,255,255); FOVCircle.Filled = false; FOVCircle.Transparency = 1; FOVCircle.Visible = false
+local ESP={}
+local function createESP(p) if p==LP or ESP[p] then return end; local d={box=Drawing.new("Square"),name=Drawing.new("Text"),dist=Drawing.new("Text"),healthBg=Drawing.new("Square"),healthBar=Drawing.new("Square"),skeleton={}}; d.box.Thickness=1; d.box.Color=C.ESPColor; d.box.Filled=false; d.box.Visible=false; d.name.Size=14; d.name.Center=true; d.name.Outline=true; d.name.Color=C.NameColor; d.name.Visible=false; d.dist.Size=12; d.dist.Center=true; d.dist.Outline=true; d.dist.Color=Color3.fromRGB(200,200,200); d.dist.Visible=false; d.healthBg.Thickness=1; d.healthBg.Color=Color3.fromRGB(0,0,0); d.healthBg.Filled=true; d.healthBg.Visible=false; d.healthBar.Thickness=1; d.healthBar.Color=Color3.fromRGB(0,255,0); d.healthBar.Filled=true; d.healthBar.Visible=false; for i=1,6 do local line=Drawing.new("Line"); line.Thickness=1; line.Color=C.ESPColor; line.Visible=false; d.skeleton[i]=line end; ESP[p]=d end
+local function removeESP(p) local d=ESP[p]; if not d then return end; for k,o in pairs(d) do if k=="skeleton" then for _,l in pairs(o) do pcall(function() l:Remove() end) end else pcall(function() o:Remove() end) end end; ESP[p]=nil end
+local function hideESP(d) pcall(function() d.box.Visible=false; d.name.Visible=false; d.dist.Visible=false; d.healthBg.Visible=false; d.healthBar.Visible=false end); for _,l in pairs(d.skeleton) do pcall(function() l.Visible=false end) end end
+local function updateESP()
+    local cam = workspace.CurrentCamera; if not cam then return end
+    for p, d in pairs(ESP) do
+        pcall(function()
+            local ch = p.Character; local hrp = ch and ch:FindFirstChild("HumanoidRootPart"); local head = ch and ch:FindFirstChild("Head"); local hu = ch and ch:FindFirstChildOfClass("Humanoid")
+            if not C.ESP or not (ch and hrp and head and hu and hu.Health > 0) then hideESP(d); return end
+            local ds = (cam.CFrame.Position - hrp.Position).Magnitude
+            if ds > C.Dist then hideESP(d); return end
+            local top, onTop = cam:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0)); local bot, onBot = cam:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+            if not onTop and not onBot then hideESP(d); return end
+            local h = math.abs(top.Y - bot.Y); local w = h * 0.55; local boxX = top.X - w/2; local boxY = top.Y
+            d.box.Size = Vector2.new(w, h); d.box.Position = Vector2.new(boxX, boxY); d.box.Visible = true; d.box.Color = C.ESPColor
+            d.name.Text = p.Name; d.name.Position = Vector2.new(top.X, top.Y - 18); d.name.Visible = true; d.name.Color = C.NameColor
+            d.dist.Text = string.format("[%d m]", math.floor(ds)); d.dist.Position = Vector2.new(top.X, top.Y + h + 2); d.dist.Visible = true
+            local hpPct = hu.Health / hu.MaxHealth
+            d.healthBg.Size = Vector2.new(3, h); d.healthBg.Position = Vector2.new(boxX - 6, boxY); d.healthBg.Visible = true
+            d.healthBar.Size = Vector2.new(3, h * hpPct); d.healthBar.Position = Vector2.new(boxX - 6, boxY + (h * (1 - hpPct))); d.healthBar.Color = Color3.fromRGB(255 * (1 - hpPct), 255 * hpPct, 0); d.healthBar.Visible = true
+            local function pr(name) local pt = ch:FindFirstChild(name); if not pt then return nil end; local v, on = cam:WorldToViewportPoint(pt.Position); if not on then return nil end; return Vector2.new(v.X, v.Y) end
+            local pHead=pr("Head"); local pTorso=pr("UpperTorso") or pr("Torso"); local pLHand=pr("LeftHand") or pr("Left Arm"); local pRHand=pr("RightHand") or pr("Right Arm"); local pLFoot=pr("LeftFoot") or pr("Left Leg"); local pRFoot=pr("RightFoot") or pr("Right Leg")
+            local segs={{pHead,pTorso},{pTorso,pLHand},{pTorso,pRHand},{pTorso,pLFoot},{pTorso,pRFoot},{pLHand,pRHand}}
+            for i=1,6 do local a,b=segs[i][1],segs[i][2]; local line=d.skeleton[i]; if a and b then line.From=a; line.To=b; line.Visible=true; line.Color=C.ESPColor else line.Visible=false end end
+        end)
+    end
+end
+local originalSizes={}
+local function applyHitbox() for _,p in pairs(P:GetPlayers()) do if p==LP then continue end; local ch=p.Character; if ch then local head=ch:FindFirstChild("Head"); if head and head:IsA("BasePart") then if not originalSizes[p] then originalSizes[p]=head.Size end; if C.Hitbox then head.Size=Vector3.new(C.HitboxSize,C.HitboxSize,C.HitboxSize) else if head.Size~=originalSizes[p] then head.Size=originalSizes[p] end end end else originalSizes[p]=nil end end end
+local function doRage() if C.Rage<7 then return end; local cam=workspace.CurrentCamera; if not cam then return end; local bestT,bestD=nil,math.huge; for _,p in pairs(P:GetPlayers()) do if p==LP then continue end; local ch=p.Character; local hu=ch and ch:FindFirstChildOfClass("Humanoid"); if not (ch and hu and hu.Health>0) then continue end; local tp=ch:FindFirstChild("Head") or ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso"); if not tp then continue end; local sp,on=cam:WorldToViewportPoint(tp.Position); if on and isVis(tp) then local d=(cam.CFrame.Position-tp.Position).Magnitude; if d<bestD then bestD=d; bestT=tp end end end; if bestT then local cf=cam.CFrame; cam.CFrame=CFrame.new(cf.Position,bestT.Position) end end
+local function getT() local cam=workspace.CurrentCamera; if not cam then return nil end; local best,bs=nil,math.huge; local cp=cam.CFrame.Position; local sc=Vector2.new(cam.ViewportSize.X/2,cam.ViewportSize.Y/2); for _,p in pairs(P:GetPlayers()) do if p==LP then continue end; local ch=p.Character; local hu=ch and ch:FindFirstChildOfClass("Humanoid"); if not (ch and hu and hu.Health>0) then continue end; local tp=ch:FindFirstChild("Head") or ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso"); if not tp then continue end; local sp,on=cam:WorldToViewportPoint(tp.Position); if not on then continue end; local sd=(Vector2.new(sp.X,sp.Y)-sc).Magnitude; if sd>C.FOV then continue end; local d=(cp-tp.Position).Magnitude; if d>C.Dist then continue end; if C.Wall and not isVis(tp) then continue end; if sd<bs then bs=sd; best=tp end end; return best end
+RS.RenderStepped:Connect(function()
+    if C.ESP then updateESP() end
+    applyHitbox()
+    local cam=workspace.CurrentCamera; if not cam then return end
+    FOVCircle.Visible=C.FOVShow; FOVCircle.Radius=C.FOV; FOVCircle.Position=Vector2.new(cam.ViewportSize.X/2,cam.ViewportSize.Y/2)
+    if C.Aim and (C.Auto or UIS:IsKeyDown(C.AimKey)) then local t=getT(); if t then local cf=cam.CFrame; cam.CFrame=cf:Lerp(CFrame.new(cf.Position,t.Position),C.Smooth) end end
+    doRage()
+end)
+-- Movimento
+local fv,fg
+RS.Heartbeat:Connect(function() local ch=LP.Character; local hu=ch and ch:FindFirstChildOfClass("Humanoid"); if not hu then return end; if C.Speed then hu.WalkSpeed=C.SpeedVal end; if C.Fly then local hr=ch:FindFirstChild("HumanoidRootPart"); if not hr then return end; if not fv then fv=Instance.new("BodyVelocity",hr); fv.MaxForce=Vector3.new(1e5,1e5,1e5) end; if not fg then fg=Instance.new("BodyGyro",hr); fg.MaxTorque=Vector3.new(1e5,1e5,1e5); fg.P=1000 end; local cm=workspace.CurrentCamera; local mv=Vector3.zero; if UIS:IsKeyDown(Enum.KeyCode.W) then mv=mv+cm.CFrame.LookVector end; if UIS:IsKeyDown(Enum.KeyCode.S) then mv=mv-cm.CFrame.LookVector end; if UIS:IsKeyDown(Enum.KeyCode.A) then mv=mv-cm.CFrame.RightVector end; if UIS:IsKeyDown(Enum.KeyCode.D) then mv=mv+cm.CFrame.RightVector end; if UIS:IsKeyDown(Enum.KeyCode.Space) then mv=mv+Vector3.new(0,1,0) end; if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then mv=mv-Vector3.new(0,1,0) end; fv.Velocity=mv.Magnitude>0 and mv.Unit*C.FlySpeed or Vector3.zero; fg.CFrame=cm.CFrame else if fv then fv:Destroy(); fv=nil end; if fg then fg:Destroy(); fg=nil end end end)
+UIS.JumpRequest:Connect(function() if C.InfJump then local ch=LP.Character; local hu=ch and ch:FindFirstChildOfClass("Humanoid"); if hu then hu:ChangeState(Enum.HumanoidStateType.Jumping) end end end)
+UIS.InputBegan:Connect(function(i,g) if g then return end; if i.KeyCode==C.ToggleKey then Main.Visible=not Main.Visible end end)
+-- Keybinds System
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == C.Keybinds.Rage then C.Rage = (C.Rage >= 7) and 0 or 8 end
+    if input.KeyCode == C.Keybinds.ESP then C.ESP = not C.ESP end
+    if input.KeyCode == C.Keybinds.Aimbot then C.Aim = not C.Aim end
+    if input.KeyCode == C.Keybinds.Silent then C.Silent = not C.Silent end
+    if input.KeyCode == C.Keybinds.Hitbox then C.Hitbox = not C.Hitbox end
+end)
+-- Monitorar Players
+P.PlayerAdded:Connect(function(p) p.CharacterAdded:Connect(function() task.wait(1); createESP(p) end) end); P.PlayerRemoving:Connect(removeESP); for _,p in pairs(P:GetPlayers()) do if p~=LP then createESP(p) end end
+-- MENU
+local Mira=TC["Mira"]
+createCard(Mira,"Aimbot",5,0,false,function(s) C.Aim=s end)
+createCard(Mira,"Rage Bot",5,265,false,function(s) C.Rage=s and 8 or 0 end)
+createCard(Mira,"Silent Aim",48,0,false,function(s) C.Silent=s end)
+createCard(Mira,"Wall Check",48,265,true,function(s) C.Wall=s end)
+createCard(Mira,"Hitbox",91,0,false,function(s) C.Hitbox=s end)
+createSlider(Mira,"Hitbox Size",134,0,1,20,C.HitboxSize,function(v) C.HitboxSize=v end)
+createSlider(Mira,"FOV",177,0,30,400,C.FOV,function(v) C.FOV=v end)
+createSlider(Mira,"Humanização",220,0,0,8,C.Hum,function(v) C.Hum=v end)
+local EspTab=TC["ESP"]
+createCard(EspTab,"ESP Box",5,0,false,function(s) C.ESP=s end)
+createCard(EspTab,"FOV Circle",5,265,true,function(s) C.FOVShow=s end)
+createSlider(EspTab,"Max Dist",48,0,100,1000,C.Dist,function(v) C.Dist=v end)
+createSlider(EspTab,"Box R",91,0,0,255,C.ESPColor.R*255,function(v) C.ESPColor=Color3.fromRGB(v,C.ESPColor.G*255,C.ESPColor.B*255) end)
+createSlider(EspTab,"Box G",134,0,0,255,C.ESPColor.G*255,function(v) C.ESPColor=Color3.fromRGB(C.ESPColor.R*255,v,C.ESPColor.B*255) end)
+createSlider(EspTab,"Box B",177,0,0,255,C.ESPColor.B*255,function(v) C.ESPColor=Color3.fromRGB(C.ESPColor.R*255,C.ESPColor.G*255,v) end)
+createSlider(EspTab,"Name R",220,0,0,255,C.NameColor.R*255,function(v) C.NameColor=Color3.fromRGB(v,C.NameColor.G*255,C.NameColor.B*255) end)
+createSlider(EspTab,"Name G",263,0,0,255,C.NameColor.G*255,function(v) C.NameColor=Color3.fromRGB(C.NameColor.R*255,v,C.NameColor.B*255) end)
+createSlider(EspTab,"Name B",306,0,0,255,C.NameColor.B*255,function(v) C.NameColor=Color3.fromRGB(C.NameColor.R*255,C.NameColor.G*255,v) end)
+local Mov=TC["Movimentos"]
+createCard(Mov,"Speed Hack",5,0,false,function(s) C.Speed=s end)
+createCard(Mov,"Fly",5,265,false,function(s) C.Fly=s end)
+createCard(Mov,"Inf Jump",48,0,false,function(s) C.InfJump=s end)
+createSlider(Mov,"Speed",91,0,16,1000,C.SpeedVal,function(v) C.SpeedVal=v end)
+createSlider(Mov,"Fly Speed",134,0,1,1000,C.FlySpeed,function(v) C.FlySpeed=v end)
+local Arm=TC["Armas"]
+createCard(Arm,"No Recoil",5,0,false,function(s) C.NoRecoil=s end)
+createCard(Arm,"Fast Reload",5,265,false,function(s) C.FastReload=s end)
+
+-- ABA CONFIG (Cores + Keybinds)
+local Conf=TC["Config"]
+createSlider(Conf,"Hub R",5,0,0,255,C.HubColor.R*255,function(v) C.HubColor=Color3.fromRGB(v,C.HubColor.G*255,C.HubColor.B*255); Side.BackgroundColor3=C.HubColor; Top.BackgroundColor3=C.HubColor end)
+createSlider(Conf,"Hub G",48,0,0,255,C.HubColor.G*255,function(v) C.HubColor=Color3.fromRGB(C.HubColor.R*255,v,C.HubColor.B*255); Side.BackgroundColor3=C.HubColor; Top.BackgroundColor3=C.HubColor end)
+createSlider(Conf,"Hub B",91,0,0,255,C.HubColor.B*255,function(v) C.HubColor=Color3.fromRGB(C.HubColor.R*255,C.HubColor.G*255,v); Side.BackgroundColor3=C.HubColor; Top.BackgroundColor3=C.HubColor end)
+
+createKeybind(Conf,"Keybind Rage Bot",134,0,Enum.KeyCode.Z,function(k) C.Keybinds.Rage=k end)
+createKeybind(Conf,"Keybind ESP",177,0,Enum.KeyCode.X,function(k) C.Keybinds.ESP=k end)
+createKeybind(Conf,"Keybind Aimbot",220,0,Enum.KeyCode.C,function(k) C.Keybinds.Aimbot=k end)
+createKeybind(Conf,"Keybind Silent Aim",263,0,Enum.KeyCode.V,function(k) C.Keybinds.Silent=k end)
+createKeybind(Conf,"Keybind Hitbox",306,0,Enum.KeyCode.B,function(k) C.Keybinds.Hitbox=k end)
+
+-- Troca de Abas
+local function selTab(n) for tn,f in pairs(TC) do f.Visible=(tn==n) end; for _,b in pairs(tabBtns) do b.TextColor3=Color3.fromRGB(150,150,160) end; tabBtns[n].TextColor3=Color3.fromRGB(255,255,255) end
+sideBtns["🎯"].MouseButton1Click:Connect(function() selTab("Mira") end)
+sideBtns["👁️"].MouseButton1Click:Connect(function() selTab("ESP") end)
+sideBtns["🧍"].MouseButton1Click:Connect(function() selTab("Movimentos") end)
+sideBtns["🔫"].MouseButton1Click:Connect(function() selTab("Armas") end)
+sideBtns["⚡"].MouseButton1Click:Connect(function() selTab("Config") end)
+for n,b in pairs(tabBtns) do b.MouseButton1Click:Connect(function() selTab(n) end) end
+print("[Nunes Hub] Carregado. RightShift abre/fecha.")
