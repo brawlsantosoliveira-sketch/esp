@@ -1,0 +1,455 @@
+-- Nunes Hub - Interface Flutuante
+-- Compatível com: Roblox (LocalScript em StarterPlayerScripts)
+-- As funções de "aimbot" aqui são apenas SIMULAÇÃO visual/UI
+-- Use apenas em jogos próprios ou para estudo de UI
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ========== CONFIGURAÇÕES ==========
+local CONFIG = {
+    HubName = "Nunes Hub",
+    HubSize = UDim2.new(0, 280, 0, 340),
+    ToggleKey = Enum.KeyCode.RightShift,
+    AccentColor = Color3.fromRGB(0, 170, 255),
+    BgColor = Color3.fromRGB(20, 20, 25),
+    PanelColor = Color3.fromRGB(30, 30, 38),
+    TextColor = Color3.fromRGB(240, 240, 240),
+}
+
+-- Estado
+local state = {
+    isOpen = true,
+    aimbotEnabled = false,
+    aimTarget = "Head", -- "Head" ou "Body"
+    espEnabled = false,
+    espColor = Color3.fromRGB(255, 0, 0),
+}
+
+-- ========== GUI PRINCIPAL ==========
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "NunesHub"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+-- Container principal (flutuante)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = CONFIG.HubSize
+mainFrame.Position = UDim2.new(0.5, -140, 0.5, -170)
+mainFrame.BackgroundColor3 = CONFIG.BgColor
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = CONFIG.AccentColor
+mainStroke.Thickness = 1.5
+mainStroke.Transparency = 0.3
+mainStroke.Parent = mainFrame
+
+-- ========== BARRA DE TÍTULO (arrastável) ==========
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 38)
+titleBar.BackgroundColor3 = CONFIG.PanelColor
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+-- Corrige cantos inferiores da title bar
+local titleFix = Instance.new("Frame")
+titleFix.Size = UDim2.new(1, 0, 0, 15)
+titleFix.Position = UDim2.new(0, 0, 1, -15)
+titleFix.BackgroundColor3 = CONFIG.PanelColor
+titleFix.BorderSizePixel = 0
+titleFix.ZIndex = 1
+titleFix.Parent = titleBar
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -80, 1, 0)
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "⚡ " .. CONFIG.HubName
+titleLabel.TextColor3 = CONFIG.AccentColor
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.ZIndex = 2
+titleLabel.Parent = titleBar
+
+-- Botão minimizar/fechar
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 26, 0, 26)
+closeBtn.Position = UDim2.new(1, -32, 0, 6)
+closeBtn.BackgroundColor3 = Color3.fromRGB(60, 25, 30)
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+closeBtn.TextSize = 14
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.ZIndex = 2
+closeBtn.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeBtn
+
+-- Botão minimizar
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 26, 0, 26)
+minBtn.Position = UDim2.new(1, -62, 0, 6)
+minBtn.BackgroundColor3 = Color3.fromRGB(40, 50, 60)
+minBtn.Text = "—"
+minBtn.TextColor3 = Color3.fromRGB(180, 220, 255)
+minBtn.TextSize = 14
+minBtn.Font = Enum.Font.GothamBold
+minBtn.ZIndex = 2
+minBtn.Parent = titleBar
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = minBtn
+
+-- ========== CONTAINER DE CONTEÚDO ==========
+local content = Instance.new("ScrollingFrame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -16, 1, -50)
+content.Position = UDim2.new(0, 8, 0, 44)
+content.BackgroundTransparency = 1
+content.ScrollBarThickness = 4
+content.ScrollBarImageColor3 = CONFIG.AccentColor
+content.CanvasSize = UDim2.new(0, 0, 0, 0)
+content.AutomaticCanvasSize = Enum.AutomaticSize.Y
+content.Parent = mainFrame
+
+local contentLayout = Instance.new("UIListLayout")
+contentLayout.Padding = UDim.new(0, 8)
+contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+contentLayout.Parent = content
+
+-- ========== FUNÇÕES AUXILIARES ==========
+local function createSection(title)
+    local section = Instance.new("Frame")
+    section.Size = UDim2.new(1, 0, 0, 0)
+    section.BackgroundTransparency = 1
+    section.AutomaticSize = Enum.AutomaticSize.Y
+    section.LayoutOrder = #content:GetChildren()
+    section.Parent = content
+
+    local sectionLayout = Instance.new("UIListLayout")
+    sectionLayout.Padding = UDim.new(0, 6)
+    sectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    sectionLayout.Parent = section
+
+    local header = Instance.new("TextLabel")
+    header.Size = UDim2.new(1, 0, 0, 20)
+    header.BackgroundTransparency = 1
+    header.Text = title
+    header.TextColor3 = CONFIG.AccentColor
+    header.TextSize = 13
+    header.Font = Enum.Font.GothamBold
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    header.LayoutOrder = 0
+    header.Parent = section
+
+    return section
+end
+
+local function createToggle(parent, text, defaultState, callback)
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Size = UDim2.new(1, 0, 0, 34)
+    toggleFrame.BackgroundColor3 = CONFIG.PanelColor
+    toggleFrame.BackgroundTransparency = 0.3
+    toggleFrame.Parent = parent
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = toggleFrame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = CONFIG.TextColor
+    label.TextSize = 14
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = toggleFrame
+
+    local switch = Instance.new("Frame")
+    switch.Size = UDim2.new(0, 40, 0, 20)
+    switch.Position = UDim2.new(1, -52, 0.5, -10)
+    switch.BackgroundColor3 = defaultState and CONFIG.AccentColor or Color3.fromRGB(60, 60, 70)
+    switch.Parent = toggleFrame
+
+    local switchCorner = Instance.new("UICorner")
+    switchCorner.CornerRadius = UDim.new(1, 0)
+    switchCorner.Parent = switch
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 16, 0, 16)
+    knob.Position = defaultState and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    knob.Parent = switch
+
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(1, 0)
+    knobCorner.Parent = knob
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.BackgroundTransparency = 1
+    button.Text = ""
+    button.Parent = toggleFrame
+
+    local currentState = defaultState
+
+    local function setState(newState)
+        currentState = newState
+        local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad)
+        TweenService:Create(switch, tweenInfo, {
+            BackgroundColor3 = newState and CONFIG.AccentColor or Color3.fromRGB(60, 60, 70)
+        }):Play()
+        TweenService:Create(knob, tweenInfo, {
+            Position = newState and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        }):Play()
+        if callback then callback(newState) end
+    end
+
+    button.MouseButton1Click:Connect(function()
+        setState(not currentState)
+    end)
+
+    return setState
+end
+
+local function createDropdown(parent, text, options, defaultOption, callback)
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Size = UDim2.new(1, 0, 0, 34)
+    dropdownFrame.BackgroundColor3 = CONFIG.PanelColor
+    dropdownFrame.BackgroundTransparency = 0.3
+    dropdownFrame.Parent = parent
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = dropdownFrame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.5, 0, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = CONFIG.TextColor
+    label.TextSize = 14
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = dropdownFrame
+
+    local selectedBtn = Instance.new("TextButton")
+    selectedBtn.Size = UDim2.new(0, 90, 0, 24)
+    selectedBtn.Position = UDim2.new(1, -100, 0.5, -12)
+    selectedBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    selectedBtn.Text = defaultOption
+    selectedBtn.TextColor3 = CONFIG.AccentColor
+    selectedBtn.TextSize = 13
+    selectedBtn.Font = Enum.Font.GothamBold
+    selectedBtn.Parent = dropdownFrame
+
+    local selCorner = Instance.new("UICorner")
+    selCorner.CornerRadius = UDim.new(0, 5)
+    selCorner.Parent = selectedBtn
+
+    local optionList = Instance.new("Frame")
+    optionList.Size = UDim2.new(0, 90, 0, 0)
+    optionList.Position = UDim2.new(1, -100, 1, 4)
+    optionList.BackgroundColor3 = CONFIG.PanelColor
+    optionList.Visible = false
+    optionList.ZIndex = 10
+    optionList.Parent = dropdownFrame
+
+    local optCorner = Instance.new("UICorner")
+    optCorner.CornerRadius = UDim.new(0, 5)
+    optCorner.Parent = optionList
+
+    local optLayout = Instance.new("UIListLayout")
+    optLayout.Padding = UDim.new(0, 2)
+    optLayout.Parent = optionList
+
+    local optPadding = Instance.new("UIPadding")
+    optPadding.PaddingTop = UDim.new(0, 4)
+    optPadding.PaddingBottom = UDim.new(0, 4)
+    optPadding.Parent = optionList
+
+    for i, opt in ipairs(options) do
+        local optBtn = Instance.new("TextButton")
+        optBtn.Size = UDim2.new(1, -8, 0, 22)
+        optBtn.Position = UDim2.new(0, 4, 0, 0)
+        optBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        optBtn.Text = opt
+        optBtn.TextColor3 = CONFIG.TextColor
+        optBtn.TextSize = 12
+        optBtn.Font = Enum.Font.Gotham
+        optBtn.LayoutOrder = i
+        optBtn.ZIndex = 11
+        optBtn.Parent = optionList
+
+        local oCorner = Instance.new("UICorner")
+        oCorner.CornerRadius = UDim.new(0, 4)
+        oCorner.Parent = optBtn
+
+        optBtn.MouseButton1Click:Connect(function()
+            selectedBtn.Text = opt
+            optionList.Visible = false
+            if callback then callback(opt) end
+        end)
+    end
+
+    selectedBtn.MouseButton1Click:Connect(function()
+        optionList.Visible = not optionList.Visible
+        local height = (#options * 24) + 8
+        optionList.Size = UDim2.new(0, 90, 0, optionList.Visible and height or 0)
+    end)
+
+    return selectedBtn
+end
+
+-- ========== SEÇÕES DO MENU ==========
+
+-- AIMBOT
+local aimSection = createSection("🎯 AIMBOT")
+
+local function setAimbot(enabled)
+    state.aimbotEnabled = enabled
+    -- ⚠️ AQUI você implementaria a lógica do seu aimbot
+    -- (não incluída por questões de ToS)
+    print("[Nunes Hub] Aimbot:", enabled and "ON" or "OFF")
+end
+
+createToggle(aimSection, "Ativar Aimbot", false, setAimbot)
+
+createDropdown(aimSection, "Alvo", {"Head", "Body"}, "Head", function(opt)
+    state.aimTarget = opt
+    print("[Nunes Hub] Alvo:", opt == "Head" and "Cabeça" or "Peito")
+end)
+
+-- ESP
+local espSection = createSection("👁️ ESP")
+
+local function setESP(enabled)
+    state.espEnabled = enabled
+    print("[Nunes Hub] ESP:", enabled and "ON" or "OFF")
+end
+
+createToggle(espSection, "Ativar ESP", false, setESP)
+
+-- INFO
+local infoSection = createSection("ℹ️ INFO")
+
+local keyLabel = Instance.new("TextLabel")
+keyLabel.Size = UDim2.new(1, 0, 0, 22)
+keyLabel.BackgroundTransparency = 1
+keyLabel.Text = "Tecla: RightShift para abrir/fechar"
+keyLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
+keyLabel.TextSize = 12
+keyLabel.Font = Enum.Font.Gotham
+keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+keyLabel.Parent = infoSection
+
+local dragLabel = Instance.new("TextLabel")
+dragLabel.Size = UDim2.new(1, 0, 0, 22)
+dragLabel.BackgroundTransparency = 1
+dragLabel.Text = "Arraste pela barra de título para mover"
+dragLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
+dragLabel.TextSize = 12
+dragLabel.Font = Enum.Font.Gotham
+dragLabel.TextXAlignment = Enum.TextXAlignment.Left
+dragLabel.Parent = infoSection
+
+-- ========== SISTEMA DE ARRASTAR ==========
+local dragging = false
+local dragStart, startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- ========== ABRIR / FECHAR ==========
+local minimized = false
+
+closeBtn.MouseButton1Click:Connect(function()
+    state.isOpen = false
+    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    TweenService:Create(mainFrame, tweenInfo, {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(mainFrame.Position.X.Scale, mainFrame.Position.X.Offset + 140,
+                             mainFrame.Position.Y.Scale, mainFrame.Position.Y.Offset + 170)
+    }):Play()
+    task.wait(0.2)
+    mainFrame.Visible = false
+end)
+
+minBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    local targetSize = minimized and UDim2.new(0, 280, 0, 38) or CONFIG.HubSize
+    TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+        Size = targetSize
+    }):Play()
+    content.Visible = not minimized
+end)
+
+-- Atalho para abrir/fechar
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == CONFIG.ToggleKey then
+        if not mainFrame.Visible then
+            mainFrame.Visible = true
+            mainFrame.Size = UDim2.new(0, 0, 0, 0)
+            mainFrame.Position = UDim2.new(0.5, -140, 0.5, -170)
+            TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = CONFIG.HubSize
+            }):Play()
+        else
+            mainFrame.Visible = false
+        end
+    end
+end)
+
+print("[Nunes Hub] Carregado! Pressione RightShift para abrir/fechar.")
